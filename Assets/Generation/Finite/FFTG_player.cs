@@ -14,32 +14,43 @@ namespace FiniteFlatTerrainGen {
             cam = GetComponent<Camera>();
         }
 
-        Vector3Int GetPosUnderCrosshair() {
-            Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-                print("I'm looking at " + hit.transform.name);
+        bool GetPosUnderCrosshair(out Vector3Int pos, bool adjacent = false) {
+            Ray ray;
+            if (Cursor.visible)
+                ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            else
+                ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
 
-            return new Vector3Int();
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit)) {
+                pos = world.WorldToCoord(hit.point + hit.normal * (adjacent ? 0.5f : -0.5f));
+                return true;
+            }
+
+            pos = new Vector3Int();
+            return false;
         }
+
+        Vector3 hitPos, voxelPos;
 
         void Update() {
             if (Input.anyKeyDown) {
                 if (Input.GetKeyDown(add)) {
-
+                    Vector3Int pos;
+                    if (GetPosUnderCrosshair(out pos, true)) {
+                        Voxel voxel = world.world[pos.x, pos.y, pos.z];
+                        voxel.id = (byte)BlockType.Stone;
+                        voxel.CreateGameObject(world.CoordToWorld(pos), world);
+                        world.world[pos.x, pos.y, pos.z] = voxel;
+                    }
                 }
                 else if (Input.GetKeyDown(remove)) {
-                    //Vector3Int pos = GetPosUnderCrosshair();
-
-                    Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit)) {
-                        var v = world.transform.InverseTransformPoint(hit.point - (hit.normal * 0.5f));
-                        Vector3Int pos = new Vector3Int((int)v.x, (int)v.y, (int)v.z);
-
-                        world.world[pos.x, pos.y, pos.z].id = (byte)BlockType.Air;
-
-                        Destroy(hit.transform.gameObject);
+                    Vector3Int pos;
+                    if (GetPosUnderCrosshair(out pos)) {
+                        Voxel voxel = world.world[pos.x, pos.y, pos.z];
+                        voxel.id = (byte)BlockType.Air;
+                        Destroy(voxel.o);
+                        world.world[pos.x, pos.y, pos.z] = voxel;
                     }
                 }
             }
