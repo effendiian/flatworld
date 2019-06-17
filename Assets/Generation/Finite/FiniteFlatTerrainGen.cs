@@ -21,7 +21,7 @@ namespace FiniteFlatTerrainGen {
         public void CreateGameObject(Vector3 pos, FiniteFlatTerrainGen gen) {
             BlockType ty = (BlockType)id;
             if (ty != BlockType.Air) {
-                o = Object.Instantiate(gen.cube, pos, Quaternion.identity, gen.transform);
+                o = Object.Instantiate(gen.blockPrefabs[id], pos, Quaternion.identity, gen.transform);
                 o.name = ty.ToString();
                 o.hideFlags = HideFlags.HideInHierarchy;
                 o.isStatic = true;
@@ -47,7 +47,9 @@ namespace FiniteFlatTerrainGen {
 
         public Vector3Int dimensions = Vector3Int.one;
         public FlatLayer[] layers;
-        public GameObject cube;
+
+        public GameObject[] blockPrefabs;
+
 
         public Voxel[,,] world;
 
@@ -55,6 +57,7 @@ namespace FiniteFlatTerrainGen {
         public GameObject[] objs;
         [SerializeField, HideInInspector]
         public int objC = 0;
+
 
         //void Start() => Regenerate();
 
@@ -65,9 +68,17 @@ namespace FiniteFlatTerrainGen {
             Clear();
             Generate();
         }
+        void Clear() {
+            if (objs != null) {
+                for (int i = 0; i < objs.Length; i++)
+                    if (objs[i] != null) DestroyImmediate(objs[i]);
+                objs = null;
+                objC = 0;
+            }
+            if (world != null)
+                world = null;
+        }
         void Generate() {
-            //if (world != null) return;
-
             int height = 0;
             foreach (FlatLayer lay in layers)
                 height += lay.height;
@@ -76,7 +87,7 @@ namespace FiniteFlatTerrainGen {
             world = new Voxel[dimensions.x, dimensions.y, dimensions.z];
             objs = new GameObject[dimensions.x * dimensions.y * dimensions.z];
 
-            int y_1 = 0, i = 0;
+            int y_1 = 0;
             foreach (FlatLayer lay in layers) {
                 for (int x = 0; x < dimensions.x; x++) {
                     for (int z = 0; z < dimensions.z; z++) {
@@ -90,15 +101,8 @@ namespace FiniteFlatTerrainGen {
             }
         }
 
-        void Clear() {
-            if (objs != null) {
-                for (int i = 0; i < objs.Length; i++)
-                    if (objs[i] != null) DestroyImmediate(objs[i]);
-                objs = null;
-                objC = 0;
-            }
-            if (world != null)
-                world = null;
+        public void RegenerateMesh() {
+
         }
 
         public Vector3 CoordToWorld(Vector3Int coord) => transform.TransformPoint(coord);
