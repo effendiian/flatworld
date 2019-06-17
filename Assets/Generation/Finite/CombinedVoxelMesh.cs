@@ -29,6 +29,7 @@ namespace CombinedVoxelMesh {
 
         public FlatLayer[] layers;
         public Mesh baseMesh;
+        public GameObject colliderPrefab;
 
         void OnValidate() {
             size.y = 0;
@@ -51,6 +52,7 @@ namespace CombinedVoxelMesh {
         Mesh msh;
 
         int sx, sxz;
+        //int solids;
 
         void Start() {
             MF = GetComponent<MeshFilter>();
@@ -63,7 +65,7 @@ namespace CombinedVoxelMesh {
 
             Generate();
 
-            MC.sharedMesh = msh;
+            //MC.sharedMesh = msh;
         }
 
         void Clear() {
@@ -87,10 +89,12 @@ namespace CombinedVoxelMesh {
             List<CombineInstance> instances = new List<CombineInstance>(voxels.Length);
 
             Vector3Int[] sides = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
+            //solids = 0;
 
             for (int i = 0; i < voxels.Length; i++) {
                 Voxel v = voxels[i];
                 if (v.id == BlockType.Air) continue;
+                //solids++;
 
                 Vector3Int p = IndexToXYZ(i);
 
@@ -109,7 +113,7 @@ namespace CombinedVoxelMesh {
 
                 CombineInstance inst = new CombineInstance {
                     mesh = baseMesh,
-                    transform = Matrix4x4.TRS(p, Quaternion.identity, Vector3.one)
+                    transform = Matrix4x4.TRS(XYZtoWorld(p), Quaternion.identity, Vector3.one)
                 };
                 instances.Add(inst);
             }
@@ -117,10 +121,26 @@ namespace CombinedVoxelMesh {
             msh.CombineMeshes(instances.ToArray(), true, true);
 
             MF.mesh = msh;
-            MC.sharedMesh = msh;
-        }
-        void GenerateColliders() {
+            //MC.sharedMesh = msh;
 
+            GenerateColliders();
+        }
+
+        //[SerializeField, HideInInspector]
+        GameObject[] colliders;
+        void GenerateColliders() {
+            if (colliders == null) {
+                colliders = new GameObject[voxels.Length];
+
+                for (int i = 0; i < voxels.Length; i++) {
+                    GameObject o = Instantiate(colliderPrefab, IndexToXYZ(i), Quaternion.identity, transform);
+                    o.hideFlags = HideFlags.HideInHierarchy;
+                    colliders[i] = o;
+                }
+            }
+
+            for (int i = 0; i < voxels.Length; i++)
+                colliders[i].SetActive(voxels[i].id != BlockType.Air);
         }
 
         public Vector3Int IndexToXYZ(int i) => new Vector3Int(i % size.x, i / (size.x * size.z), (i / size.x) % size.z);
