@@ -8,6 +8,7 @@ namespace CombinedVoxelMesh {
 		public CombinedVoxelMesh world;
 
 		public KeyCode add, remove;
+        public bool allowHold = false;
 		Camera cam;
 
 		void Start() {
@@ -34,8 +35,8 @@ namespace CombinedVoxelMesh {
 		Vector3 hitPos, voxelPos;
 
 		void Update() {
-			if (Input.anyKeyDown) {
-				if (Input.GetKeyDown(add)) {
+			if (allowHold ? Input.anyKey : Input.anyKeyDown) {
+				if (Input.GetKey(add)) {
 					Vector3Int pos;
 					if (GetPosUnderCrosshair(out pos, true)) {
 						world.voxels[world.XYZtoIndex(pos)].id = BlockType.Stone;
@@ -43,7 +44,7 @@ namespace CombinedVoxelMesh {
 						world.UpdateMesh();
 					}
 				}
-				else if (Input.GetKeyDown(remove)) {
+				else if (Input.GetKey(remove)) {
 					Vector3Int pos;
 					if (GetPosUnderCrosshair(out pos)) {
 						world.voxels[world.XYZtoIndex(pos)].id = BlockType.Air;
