@@ -435,7 +435,6 @@ GameObject:
   - component: {fileID: 1245256905}
   - component: {fileID: 1245256909}
   - component: {fileID: 1245256908}
-  - component: {fileID: 1245256910}
   - component: {fileID: 1245256907}
   m_Layer: 0
   m_Name: Terrain
@@ -564,18 +563,4 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1245256904}
-  m_Mesh: {fileID: 0}
---- !u!64 &1245256910
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1245256904}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
   m_Mesh: {fileID: 0}
