@@ -354,6 +354,7 @@ MonoBehaviour:
   world: {fileID: 1245256907}
   add: 49
   remove: 50
+  allowHold: 0
 --- !u!1 &968990781
 GameObject:
   m_ObjectHideFlags: 0
@@ -457,7 +458,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   genInEditor: 1
   clear: 0
-  dimensions: {x: 16, y: 22, z: 16}
+  dimensions: {x: 8, y: 22, z: 8}
   layers:
   - type: 4
     height: 1
@@ -519,6 +520,7 @@ MonoBehaviour:
   baseMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}
+  solids: 0
 --- !u!23 &1245256908
 MeshRenderer:
   m_ObjectHideFlags: 0
