@@ -125,7 +125,6 @@ GameObject:
   - component: {fileID: 248616016}
   - component: {fileID: 248616020}
   - component: {fileID: 248616019}
-  - component: {fileID: 248616021}
   - component: {fileID: 248616024}
   - component: {fileID: 248616023}
   - component: {fileID: 248616022}
@@ -247,21 +246,6 @@ MonoBehaviour:
     up: 101
     down: 113
     mouse: 306
---- !u!114 &248616021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 248616015}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2480ad0090ed414e90edcebfbb8e200, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  world: {fileID: 1245256905}
-  add: 49
-  remove: 50
 --- !u!114 &248616022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,7 +417,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1245256906}
-  - component: {fileID: 1245256905}
   - component: {fileID: 1245256909}
   - component: {fileID: 1245256908}
   - component: {fileID: 1245256907}
@@ -444,40 +427,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1245256905
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1245256904}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e20a226f79d403448104b196b41fbcc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  genInEditor: 1
-  clear: 0
-  dimensions: {x: 8, y: 22, z: 8}
-  layers:
-  - type: 4
-    height: 1
-  - type: 3
-    height: 8
-  - type: 2
-    height: 4
-  - type: 1
-    height: 1
-  - type: 0
-    height: 8
-  blockPrefabs:
-  - {fileID: 0}
-  - {fileID: 4209322281092016000, guid: 2033e5748180eae458e7e7c6b26bf08b, type: 3}
-  - {fileID: 4209322281092016000, guid: 800e86fcc1436d24bb08e53e1d71edfc, type: 3}
-  - {fileID: 4209322281092016000, guid: 8ffb33a107b321f4fb85e45d9de8ace2, type: 3}
-  - {fileID: 4209322281092016000, guid: 01026b68b8ed3094386a10669d2256de, type: 3}
-  objs: []
-  objC: 0
 --- !u!4 &1245256906
 Transform:
   m_ObjectHideFlags: 0

@@ -6,222 +6,228 @@ using UnityEngine;
 using UnityEngine.Profiling;
 
 namespace CombinedVoxelMesh {
-    public enum BlockType : byte { Air = 0, Grass, Dirt, Stone, Bedrock }
+	public enum BlockType : byte { Air = 0, Grass, Dirt, Stone, Bedrock }
 
-    [Serializable]
-    public struct Voxel {
-        public BlockType id;
+	[Serializable]
+	public struct Voxel {
+		public BlockType id;
 
-        public Voxel(BlockType ty) => this.id = ty;
-    }
+		public Voxel(BlockType ty) => this.id = ty;
+	}
 
-    [Serializable]
-    public struct FlatLayer {
-        public BlockType type;
-        public int height;
-    }
+	[Serializable]
+	public struct FlatLayer {
+		public BlockType type;
+		public int height;
+	}
 
-    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-    public class CombinedVoxelMesh : MonoBehaviour {
-        public Vector3Int size = Vector3Int.one;
-        [HideInInspector]
-        public Voxel[] voxels;
+	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+	public class CombinedVoxelMesh : MonoBehaviour {
+		public Vector3Int size = Vector3Int.one;
+		[HideInInspector]
+		public Voxel[] voxels;
 
-        public FlatLayer[] layers;
-        public Mesh baseMesh;
-        public GameObject colliderPrefab;
+		public FlatLayer[] layers;
+		public Mesh baseMesh;
+		public GameObject colliderPrefab;
 
-        void OnValidate() {
-            size.y = 0;
-            foreach (FlatLayer l in layers)
-                size.y += l.height;
-            sx = size.x;
-            sxz = size.x * size.z;
-        }
+		void OnValidate() {
+			size.y = 0;
+			foreach (FlatLayer l in layers)
+				size.y += l.height;
+			sx = size.x;
+			sxz = size.x * size.z;
+		}
 
-        MeshFilter MF;
-        MeshRenderer MR;
-        //MeshCollider MC;
-        Mesh msh;
+		MeshFilter MF;
+		MeshRenderer MR;
+		//MeshCollider MC;
+		Mesh msh;
 
-        int sx, sxz;
-        public int solids;
+		int sx, sxz;
+		public int solids;
 
-        void Start() {
-            MF = GetComponent<MeshFilter>();
-            MR = GetComponent<MeshRenderer>();
-            //MC = GetComponent<MeshCollider>();
+		void Start() {
+			MF = GetComponent<MeshFilter>();
+			MR = GetComponent<MeshRenderer>();
+			//MC = GetComponent<MeshCollider>();
 
-            msh = new Mesh();
-            msh.name = "Combined Voxel Mesh";
-            msh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            msh.MarkDynamic();
+			msh = new Mesh();
+			msh.name = "Combined Voxel Mesh";
+			msh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+			msh.MarkDynamic();
 
-            Generate();
+			Generate();
 
-            //MC.sharedMesh = msh;
-        }
+			//MC.sharedMesh = msh;
+		}
 
 
 
-        void Clear() {
-            voxels = null;
-            for (int i = 0; i < colliders.Length; i++)
-                Destroy(colliders[i]);
-            colliders = null;
-        }
-        void Generate() {
-            //if (voxels != null || voxels.Length != 0) return;
+		void Clear() {
+			voxels = null;
+			for (int i = 0; i < colliders.Length; i++)
+				Destroy(colliders[i]);
+			colliders = null;
+		}
+		void Generate() {
+			//if (voxels != null || voxels.Length != 0) return;
 
-            voxels = new Voxel[size.x * size.y * size.z];
+			voxels = new Voxel[size.x * size.y * size.z];
 
-            int wh = size.x * size.z, i_v = 0;
-            solids = 0;
-            for (int i_lay = 0; i_lay < layers.Length; i_lay++) {
-                FlatLayer lay = layers[i_lay];
-                for (int j = 0; j < wh * lay.height; j++) {
-                    voxels[i_v++] = new Voxel(lay.type);
-                    if (lay.type != BlockType.Air) solids++;
-                }
-            }
-
-            //GenerateMesh();
-            GenerateMeshNew();
-        }
-        void GenerateMesh() {
-            List<CombineInstance> instances = new List<CombineInstance>(voxels.Length);
-
-            Vector3Int[] sides = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
-
-            for (int i = 0; i < voxels.Length; i++) {
-                Voxel v = voxels[i];
-                if (v.id == BlockType.Air) continue;
-
-                Vector3Int p = IndexToXYZ(i);
-
-                #region InternalCulling
-                /*Profiler.BeginSample("Internal Culling");
-				bool bordersAir = false;
-				foreach (Vector3Int off in sides) {
-					 Vector3Int xyz = p + off;
-					 if (xyz.x < 0 || xyz.x >= size.x || xyz.y < 0 || xyz.y >= size.y || xyz.z < 0 || xyz.z >= size.z ||
-								voxels[XYZtoIndex(xyz)].id == BlockType.Air) {
-						  bordersAir = true;
-						  break;
-					 }
+			int wh = size.x * size.z, i_v = 0;
+			solids = 0;
+			for (int i_lay = 0; i_lay < layers.Length; i_lay++) {
+				FlatLayer lay = layers[i_lay];
+				for (int j = 0; j < wh * lay.height; j++) {
+					voxels[i_v++] = new Voxel(lay.type);
+					if (lay.type != BlockType.Air) solids++;
 				}
-				if (!bordersAir) continue;
-				Profiler.EndSample();*/
-                #endregion
+			}
 
-                CombineInstance inst = new CombineInstance {
-                    mesh = baseMesh,
-                    transform = Matrix4x4.TRS(XYZtoWorld(p), Quaternion.identity, Vector3.one)
-                };
-                instances.Add(inst);
-            }
+			GenerateMesh();
+		}
+		void GenerateMeshOld() {
+			List<CombineInstance> instances = new List<CombineInstance>(voxels.Length);
 
-            msh.CombineMeshes(instances.ToArray(), true, true);
+			Vector3Int[] sides = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
 
-            MF.mesh = msh;
-            //MC.sharedMesh = msh;
+			for (int i = 0; i < voxels.Length; i++) {
+				Voxel v = voxels[i];
+				if (v.id == BlockType.Air) continue;
 
-            GenerateColliders();
-        }
+				Vector3Int p = IndexToXYZ(i);
 
-        Vector3[] baseVerts, baseNorm, verts, norms;
-        Vector2[] baseUVs, uvs;
-        int[] baseTris, tris;
-        int baseVertC, baseTriC;
+				#region InternalCulling
+				/*Profiler.BeginSample("Internal Culling");
+		  bool bordersAir = false;
+		  foreach (Vector3Int off in sides) {
+				Vector3Int xyz = p + off;
+				if (xyz.x < 0 || xyz.x >= size.x || xyz.y < 0 || xyz.y >= size.y || xyz.z < 0 || xyz.z >= size.z ||
+						  voxels[XYZtoIndex(xyz)].id == BlockType.Air) {
+					 bordersAir = true;
+					 break;
+				}
+		  }
+		  if (!bordersAir) continue;
+		  Profiler.EndSample();*/
+				#endregion
 
-        public void GenerateMeshNew() {
-            Profiler.BeginSample("Copy Base");
-            baseVerts = baseMesh.vertices;
-            baseNorm = baseMesh.normals;
-            baseTris = baseMesh.triangles;
-            baseUVs = baseMesh.uv;
-            Profiler.EndSample();
+				CombineInstance inst = new CombineInstance {
+					mesh = baseMesh,
+					transform = Matrix4x4.TRS(XYZtoWorld(p), Quaternion.identity, Vector3.one)
+				};
+				instances.Add(inst);
+			}
 
-            baseVertC = baseVerts.Length;
-            baseTriC = baseTris.Length;
+			msh.CombineMeshes(instances.ToArray(), true, true);
 
-            Profiler.BeginSample("Init Arrays");
-            int voxelC = voxels.Length;
-            int vertC = voxelC * baseVertC;
-            //int vertC = solids * baseVertC;
+			MF.mesh = msh;
+			//MC.sharedMesh = msh;
 
-            verts = new Vector3[vertC];
-            norms = new Vector3[vertC];
-            uvs = new Vector2[vertC];
-            tris = new int[solids * baseTriC];
+			GenerateColliders();
+		}
 
-            Profiler.EndSample();
+		Vector3[] baseVerts, baseNorm, verts, norms;
+		Vector2[] baseUVs, uv, uv2;
+		int[] baseTris, tris;
+		int baseVertC, baseTriC;
 
-            UpdateMesh();
-        }
-        public void UpdateMesh() {
-            Profiler.BeginSample("Fill Mesh Data");
-            int i_cube = 0, i_vert = 0, i_tri = 0;
-            for (int i = 0; i < voxels.Length; i++) {
-                Voxel v = voxels[i];
-                if (v.id == BlockType.Air) continue;
+		public void GenerateMesh() {
+			Profiler.BeginSample("Copy Base");
+			baseVerts = baseMesh.vertices;
+			baseNorm = baseMesh.normals;
+			baseTris = baseMesh.triangles;
+			baseUVs = baseMesh.uv;
+			Profiler.EndSample();
 
-                Vector3 p = XYZtoWorld(IndexToXYZ(i));
+			baseVertC = baseVerts.Length;
+			baseTriC = baseTris.Length;
 
-                for (int j = 0; j < baseVertC; j++, i_vert++) {
-                    verts[i_vert] = p + baseVerts[j];
-                    norms[i_vert] = baseNorm[j];
-                    uvs[i_vert] = baseUVs[j];
-                }
+			Profiler.BeginSample("Init Arrays");
+			int voxelC = voxels.Length;
+			int vertC = voxelC * baseVertC;
+			//int vertC = solids * baseVertC;
 
-                int tri_off = i_cube++ * baseVertC;
-                for (int j = 0; j < baseTriC; j++)
-                    tris[i_tri++] = tri_off + baseTris[j];
-            }
-            Profiler.EndSample();
+			verts = new Vector3[vertC];
+			norms = new Vector3[vertC];
+			uv = new Vector2[vertC];
+			uv2 = new Vector2[vertC];
+			tris = new int[solids * baseTriC];
 
-            Profiler.BeginSample("Send Mesh");
-            msh.Clear();
-            msh.vertices = verts;
-            msh.triangles = tris;
-            msh.normals = norms;
-            msh.uv = uvs;
-            MF.mesh = msh;
-            Profiler.EndSample();
+			Profiler.EndSample();
 
-            GenerateColliders();
-        }
+			UpdateMesh();
+		}
+		public void UpdateMesh() {
 
-        public void OnDisable() => Clear();
-        void OnEnable() => Start();
+			Profiler.BeginSample("Fill Mesh Data");
+			int i_cube = 0, i_vert = 0, i_tri = 0;
+			for (int i = 0; i < voxels.Length; i++) {
+				Voxel v = voxels[i];
+				if (v.id == BlockType.Air) continue;
 
-        //[SerializeField, HideInInspector]
-        GameObject[] colliders;
-        void GenerateColliders() {
-            if (colliders == null) {
-                colliders = new GameObject[voxels.Length];
+				Vector3 p = XYZtoWorld(IndexToXYZ(i));
 
-                for (int i = 0; i < voxels.Length; i++) {
-                    GameObject o = Instantiate(colliderPrefab, IndexToXYZ(i), Quaternion.identity, transform);
-                    o.hideFlags = HideFlags.HideInHierarchy;
-                    colliders[i] = o;
-                }
-            }
+				for (int j = 0; j < baseVertC; j++, i_vert++) {
+					verts[i_vert] = p + baseVerts[j];
+					norms[i_vert] = baseNorm[j];
+					uv[i_vert] = baseUVs[j];
+					uv2[i_vert] = new Vector2((byte)v.id, 0f);
+				}
 
-            for (int i = 0; i < voxels.Length; i++)
-                colliders[i].SetActive(voxels[i].id != BlockType.Air);
-        }
+				int tri_off = i_cube++ * baseVertC;
+				for (int j = 0; j < baseTriC; j++)
+					tris[i_tri++] = tri_off + baseTris[j];
+			}
+			Profiler.EndSample();
 
-        #region Conversions
-        public Vector3Int IndexToXYZ(int i) => new Vector3Int(i % size.x, i / (size.x * size.z), (i / size.x) % size.z);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int XYZtoIndex(Vector3Int xyz) => xyz.x + (xyz.z * sx) + (xyz.y * sxz);
+			Profiler.BeginSample("Send Mesh");
+			msh.Clear();
+			msh.vertices = verts;
+			msh.triangles = tris;
+			msh.normals = norms;
+			msh.uv = uv;
+			msh.uv2 = uv2;
 
-        public Vector3 XYZtoWorld(Vector3Int xtz) => transform.TransformPoint(xtz);
-        public Vector3Int WorldToXYZ(Vector3 world) {
-            Vector3 v = transform.InverseTransformPoint(world);
-            return new Vector3Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z));
-        }
-        #endregion
-    }
+			//MR.material.SetFloatArray
+
+			MF.mesh = msh;
+			Profiler.EndSample();
+
+			GenerateColliders();
+		}
+
+		public void OnDisable() => Clear();
+		void OnEnable() => Start();
+
+		//[SerializeField, HideInInspector]
+		GameObject[] colliders;
+		void GenerateColliders() {
+			if (colliders == null) {
+				colliders = new GameObject[voxels.Length];
+
+				for (int i = 0; i < voxels.Length; i++) {
+					GameObject o = Instantiate(colliderPrefab, IndexToXYZ(i), Quaternion.identity, transform);
+					o.hideFlags = HideFlags.HideInHierarchy;
+					colliders[i] = o;
+				}
+			}
+
+			for (int i = 0; i < voxels.Length; i++)
+				colliders[i].SetActive(voxels[i].id != BlockType.Air);
+		}
+
+		#region Conversions
+		public Vector3Int IndexToXYZ(int i) => new Vector3Int(i % size.x, i / (size.x * size.z), (i / size.x) % size.z);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public int XYZtoIndex(Vector3Int xyz) => xyz.x + (xyz.z * sx) + (xyz.y * sxz);
+
+		public Vector3 XYZtoWorld(Vector3Int xtz) => transform.TransformPoint(xtz);
+		public Vector3Int WorldToXYZ(Vector3 world) {
+			Vector3 v = transform.InverseTransformPoint(world);
+			return new Vector3Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z));
+		}
+		#endregion
+	}
 }
