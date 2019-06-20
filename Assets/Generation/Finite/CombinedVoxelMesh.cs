@@ -129,7 +129,7 @@ namespace CombinedVoxelMesh {
 		}
 
 		Vector3[] baseVerts, baseNorm, verts, norms;
-		Vector2[] baseUVs, uv, uv2;
+		Vector2[] baseUVs, uv2;//uv
 		int[] baseTris, tris;
 		int baseVertC, baseTriC;
 
@@ -151,7 +151,7 @@ namespace CombinedVoxelMesh {
 
 			verts = new Vector3[vertC];
 			norms = new Vector3[vertC];
-			uv = new Vector2[vertC];
+			//uv = new Vector2[vertC];
 			uv2 = new Vector2[vertC];
 			tris = new int[solids * baseTriC];
 
@@ -172,7 +172,7 @@ namespace CombinedVoxelMesh {
 				for (int j = 0; j < baseVertC; j++, i_vert++) {
 					verts[i_vert] = p + baseVerts[j];
 					norms[i_vert] = baseNorm[j];
-					uv[i_vert] = baseUVs[j];
+					//uv[i_vert] = baseUVs[j];
 					uv2[i_vert] = new Vector2((byte)v.id, 0f);
 				}
 
@@ -187,7 +187,7 @@ namespace CombinedVoxelMesh {
 			msh.vertices = verts;
 			msh.triangles = tris;
 			msh.normals = norms;
-			msh.uv = uv;
+			//msh.uv = uv;
 			msh.uv2 = uv2;
 
 			//MR.material.SetFloatArray

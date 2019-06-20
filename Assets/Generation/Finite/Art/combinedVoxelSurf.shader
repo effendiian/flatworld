@@ -22,18 +22,19 @@
         #pragma target 3.0
 
         sampler2D _MainTex;
+		float4 _MainTex_ST;
 		float4 _MainTex_TexelSize;
 
 		struct VertIn {
 			float4 vertex    : POSITION;
 			float3 normal    : NORMAL;
 			float4 texcoord  : TEXCOORD0;
-			float4 texcoord1 : TEXCOORD1;
+			float texcoord1 : TEXCOORD1;
 		};
         struct Input
         {
-            float2 uv_MainTex;
-			fixed cust1434;
+			float2 block_uv;
+			fixed4 block_col;
         };
 
         half _Glossiness, _Metallic;
@@ -41,19 +42,28 @@
 
 		void vert(inout VertIn v, out Input o) {
 			UNITY_INITIALIZE_OUTPUT(Input, o);
-			o.cust1434 = v.texcoord1;
+			fixed block_id = round(v.texcoord1);
+
+			switch (block_id) {
+				case 1: o.block_col = _GrassColor; break;
+				case 2: o.block_col = _DirtColor; break;
+				case 3: o.block_col = _StoneColor; break;
+				case 4: o.block_col = _BedrockColor; break;
+			}
+
+			float3 absNorm = abs(v.normal);
+			float2 uv = 0.5;
+			if (absNorm.y > 0.5) uv += v.vertex.xz;
+			else if (absNorm.x > 0.5) uv += v.vertex.yz;
+			else uv += v.vertex.xy;
+			o.block_uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
 		}
 
         void surf(Input IN, inout SurfaceOutputStandard o)
         {
-			fixed4 c = RetroAA(_MainTex, IN.uv_MainTex, _MainTex_TexelSize);
-
-			switch (round(IN.cust1434)) {
-				case 1: c *= _GrassColor; break;
-				case 2: c *= _DirtColor; break;
-				case 3: c *= _StoneColor; break;
-				case 4: c *= _BedrockColor; break;
-			}
+			fixed4 c = IN.block_col * RetroAA(_MainTex, IN.block_uv, _MainTex_TexelSize);
+			
+			//c = fixed4(IN.normal,1);
 
             o.Albedo = c.rgb;
             o.Metallic = _Metallic;
