@@ -28,7 +28,7 @@
 		struct VertIn {
 			float4 vertex    : POSITION;
 			float3 normal    : NORMAL;
-			float4 texcoord  : TEXCOORD0;
+			//float4 texcoord  : TEXCOORD0;
 			float texcoord1 : TEXCOORD1;
 		};
         struct Input

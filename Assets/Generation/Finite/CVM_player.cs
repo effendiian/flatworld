@@ -28,7 +28,7 @@ namespace CombinedVoxelMesh {
 				return true;
 			}
 
-			pos = new Vector3Int();
+			pos = new Vector3Int(); 
 			return false;
 		}
 
@@ -40,7 +40,7 @@ namespace CombinedVoxelMesh {
 					Vector3Int pos;
 					if (GetPosUnderCrosshair(out pos, true)) {
 						world.voxels[world.XYZtoIndex(pos)].id = BlockType.Stone;
-						//world.GenerateMesh();
+						world.solids++;
 						world.UpdateMesh();
 					}
 				}
@@ -48,7 +48,6 @@ namespace CombinedVoxelMesh {
 					Vector3Int pos;
 					if (GetPosUnderCrosshair(out pos)) {
 						world.voxels[world.XYZtoIndex(pos)].id = BlockType.Air;
-						//world.GenerateMesh();
 						world.solids--;
 						world.UpdateMesh();
 					}

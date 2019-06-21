@@ -30,8 +30,11 @@ namespace CombinedVoxelMesh {
 		public FlatLayer[] layers;
 		public Mesh baseMesh;
 		public GameObject colliderPrefab;
+		public bool hideColliders = true;
 
-		void OnValidate() {
+		void OnValidate() => ValidateSize();
+
+		void ValidateSize() {
 			size.y = 0;
 			foreach (FlatLayer l in layers)
 				size.y += l.height;
@@ -41,7 +44,6 @@ namespace CombinedVoxelMesh {
 
 		MeshFilter MF;
 		MeshRenderer MR;
-		//MeshCollider MC;
 		Mesh msh;
 
 		int sx, sxz;
@@ -50,25 +52,24 @@ namespace CombinedVoxelMesh {
 		void Start() {
 			MF = GetComponent<MeshFilter>();
 			MR = GetComponent<MeshRenderer>();
-			//MC = GetComponent<MeshCollider>();
 
 			msh = new Mesh();
 			msh.name = "Combined Voxel Mesh";
 			msh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 			msh.MarkDynamic();
+			MF.mesh = msh;
 
+			ValidateSize();
 			Generate();
-
-			//MC.sharedMesh = msh;
 		}
-
-
 
 		void Clear() {
 			voxels = null;
-			for (int i = 0; i < colliders.Length; i++)
-				Destroy(colliders[i]);
-			colliders = null;
+			if (colliders != null) {
+				for (int i = 0; i < colliders.Length; i++)
+					Destroy(colliders[i]);
+				colliders = null;
+			}
 		}
 		void Generate() {
 			//if (voxels != null || voxels.Length != 0) return;
@@ -123,7 +124,6 @@ namespace CombinedVoxelMesh {
 			msh.CombineMeshes(instances.ToArray(), true, true);
 
 			MF.mesh = msh;
-			//MC.sharedMesh = msh;
 
 			GenerateColliders();
 		}
@@ -153,7 +153,7 @@ namespace CombinedVoxelMesh {
 			norms = new Vector3[vertC];
 			//uv = new Vector2[vertC];
 			uv2 = new Vector2[vertC];
-			tris = new int[solids * baseTriC];
+			tris = new int[voxels.Length * baseTriC];
 
 			Profiler.EndSample();
 
@@ -162,12 +162,17 @@ namespace CombinedVoxelMesh {
 		public void UpdateMesh() {
 
 			Profiler.BeginSample("Fill Mesh Data");
-			int i_cube = 0, i_vert = 0, i_tri = 0;
+			int i_vert = 0, i_tri = 0;// i_cube = 0
 			for (int i = 0; i < voxels.Length; i++) {
 				Voxel v = voxels[i];
-				if (v.id == BlockType.Air) continue;
+				if (v.id == BlockType.Air) {
+					for (int j = 0; j < baseVertC; j++, i_vert++)
+						verts[i_vert] = Vector3.zero;
+					i_tri += baseTriC;
+					continue;
+				}
 
-				Vector3 p = XYZtoWorld(IndexToXYZ(i));
+				Vector3 p = IndexToXYZ(i);
 
 				for (int j = 0; j < baseVertC; j++, i_vert++) {
 					verts[i_vert] = p + baseVerts[j];
@@ -176,40 +181,37 @@ namespace CombinedVoxelMesh {
 					uv2[i_vert] = new Vector2((byte)v.id, 0f);
 				}
 
-				int tri_off = i_cube++ * baseVertC;
+				int tri_off = i * baseVertC;
 				for (int j = 0; j < baseTriC; j++)
 					tris[i_tri++] = tri_off + baseTris[j];
 			}
 			Profiler.EndSample();
 
 			Profiler.BeginSample("Send Mesh");
-			msh.Clear();
 			msh.vertices = verts;
 			msh.triangles = tris;
 			msh.normals = norms;
 			//msh.uv = uv;
 			msh.uv2 = uv2;
-
-			//MR.material.SetFloatArray
-
-			MF.mesh = msh;
 			Profiler.EndSample();
 
 			GenerateColliders();
 		}
 
 		public void OnDisable() => Clear();
-		void OnEnable() => Start();
+		void OnEnable() {
+			if (Time.frameCount != 0) Start();
+		}
 
 		//[SerializeField, HideInInspector]
 		GameObject[] colliders;
 		void GenerateColliders() {
-			if (colliders == null) {
+			if (colliders == null || colliders.Length == 0) {
 				colliders = new GameObject[voxels.Length];
 
 				for (int i = 0; i < voxels.Length; i++) {
-					GameObject o = Instantiate(colliderPrefab, IndexToXYZ(i), Quaternion.identity, transform);
-					o.hideFlags = HideFlags.HideInHierarchy;
+					GameObject o = Instantiate(colliderPrefab, XYZtoWorld(IndexToXYZ(i)), Quaternion.identity, transform);
+					if (hideColliders) o.hideFlags = HideFlags.HideInHierarchy;
 					colliders[i] = o;
 				}
 			}
