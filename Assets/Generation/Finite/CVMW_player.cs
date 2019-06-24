@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace CombinedVoxelMesh {
 	public class CVMW_player : MonoBehaviour {
-		public CVM_chunkGen world;
+        public CVM_chunkGen world;
+        public CVM_InfChunkGen world2;
 
 		public KeyCode add, remove;
 		public bool allowHold = false;
@@ -24,7 +25,7 @@ namespace CombinedVoxelMesh {
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit)) {
 				Vector3 p = hit.point + hit.normal * (adjacent ? 0.5f : -0.5f);
-				CombinedVoxelMesh chunk = world.WorldToChunk(p);
+                CombinedVoxelMesh chunk = (world2 == null) ? world.WorldToChunk(p) : world2.WorldToChunk(p);
 				chunk.voxels[chunk.XYZtoIndex(chunk.WorldToXYZ(p))].id = ty;
 
 				if (ty == BlockType.Air) chunk.solids--;

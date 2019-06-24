@@ -4,6 +4,7 @@
     {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
+        _BlackGloss ("Black Smoothness", Range(0,1)) = 0.1
         _Metallic ("Metallic", Range(0,1)) = 0.0
 		_GrassColor("Grass Color", Color) = (1,1,1,1)
 		_DirtColor("Dirt Color", Color) = (1,1,1,1)
@@ -37,7 +38,7 @@
 			fixed4 block_col;
         };
 
-        half _Glossiness, _Metallic;
+        half _Glossiness, _BlackGloss, _Metallic;
         fixed4 _GrassColor, _DirtColor, _StoneColor, _BedrockColor;
 
 		void vert(inout VertIn v, out Input o) {
@@ -61,13 +62,14 @@
 
         void surf(Input IN, inout SurfaceOutputStandard o)
         {
-			fixed4 c = IN.block_col * RetroAA(_MainTex, IN.block_uv, _MainTex_TexelSize);
+			fixed intens = RetroAA(_MainTex, IN.block_uv, _MainTex_TexelSize);
+			fixed4 c = IN.block_col * intens;
 			
 			//c = fixed4(IN.normal,1);
 
             o.Albedo = c.rgb;
             o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
+            o.Smoothness = lerp(_BlackGloss, _Glossiness, intens);
             o.Alpha = c.a;
         }
         ENDCG
