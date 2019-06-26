@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1a92c23ec00804983b01d8587146eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 16, y: 22, z: 16}
+  size: {x: 32, y: 22, z: 32}
   voxels: []
   layers:
   - type: 4

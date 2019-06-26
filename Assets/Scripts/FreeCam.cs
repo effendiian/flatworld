@@ -79,24 +79,26 @@ public class FreeCam : MonoBehaviour {
             defNear = cam.nearClipPlane;
             defFar = cam.farClipPlane;
         }
-        #endregion
 
-        ShowCursor = showCursor;
+		st.normal.textColor = velColor;
+		st.fontSize = 14;
+		#endregion
+
+		ShowCursor = showCursor;
     }
 
     void OnDestroy() {
         if (Focused) ShowCursor = true;
     }
 
-    void OnGUI() {
+
+	GUIStyle st = new GUIStyle();
+	Rect rect = new Rect(10, 10, 100, 100);
+	void OnGUI() {
         if (Focused) {
-            GUIStyle st = new GUIStyle();
-            st.normal.textColor = velColor;
-            st.fontSize = 14;
-            //st.fontStyle = FontStyle.Bold;
             string txt = $"Velocity: {vel:.00}m/s";
             if (doClipPlane) txt += "\nNear: " + cam.nearClipPlane + " Far: " + cam.farClipPlane;
-            GUI.Label(new Rect(10, 10, 100, 100), txt, st);
+            GUI.Label(rect, txt, st);
         }
     }
     

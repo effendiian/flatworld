@@ -338,7 +338,7 @@ MonoBehaviour:
   world: {fileID: 1245256907}
   add: 49
   remove: 50
-  allowHold: 0
+  allowHold: 1
 --- !u!1 &968990781
 GameObject:
   m_ObjectHideFlags: 0
