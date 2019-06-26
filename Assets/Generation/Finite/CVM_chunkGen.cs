@@ -20,7 +20,7 @@ namespace CombinedVoxelMesh {
 
 			csx = chunkSize.x;
 			csz = chunkSize.z;
-
+			
 			int x, z;
 			for (int i = 0; i < chunks.Length; i++) {
 				IndexToXZ(i, out x, out z);

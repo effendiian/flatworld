@@ -41,10 +41,10 @@ namespace CombinedVoxelMesh {
 			sxz = size.x * size.z;
 		}
 
-		public void OnDisable() => Clear();
-		void OnEnable() {
-			if (Time.frameCount != 0) Start();
-		}
+		//public void OnDisable() => Clear();
+		//void OnEnable() {
+			//if (Time.frameCount != 0) Start();
+		//}
 
 
 		MeshFilter MF;
@@ -62,7 +62,7 @@ namespace CombinedVoxelMesh {
 		static int[] baseTris;
 		static int baseVertC, baseTriC;
 		static int[] offsets;
-		static Vector3 zero = Vector3.zero;
+		static readonly Vector3 zero = Vector3.zero;
 
 		void Start() {
 			MF = GetComponent<MeshFilter>();
@@ -88,8 +88,8 @@ namespace CombinedVoxelMesh {
 		void Clear() {
 			voxels = null;
 			if (colliders != null) {
-				for (int i = 0; i < colliders.Length; i++)
-					Destroy(colliders[i]);
+				//for (int i = 0; i < colliders.Length; i++)
+				//Destroy(colliders[i]);
 				colliders = null;
 			}
 		}
@@ -97,19 +97,24 @@ namespace CombinedVoxelMesh {
 			voxels = new Voxel[size.x * size.y * size.z];
 			filled = new bool[voxels.Length];
 
-			int wh = size.x * size.z, i_v = 0;
-			solids = 0;
-			for (int i_lay = 0; i_lay < layers.Length; i_lay++) {
-				FlatLayer lay = layers[i_lay];
-				for (int j = 0; j < wh * lay.height; j++) {
-					voxels[i_v++] = new Voxel(lay.type);
-					if (lay.type != BlockType.Air) solids++;
-				}
-			}
+			FillFlat(voxels, size, layers);
 
 			GenerateColliders();
 			GenerateMesh();
 			UpdateMesh();
+			//UpdateCollidersNew();
+		}
+
+		public static void FillFlat(Voxel[] voxels, Vector3Int size, FlatLayer[] layers) {
+			int wh = size.x * size.z;
+
+			for (int i_v = 0, i_lay = 0; i_lay < layers.Length; i_lay++) {
+				FlatLayer lay = layers[i_lay];
+				for (int j = 0; j < wh * lay.height; j++) {
+					voxels[i_v++] = new Voxel(lay.type);
+					//if (lay.type != BlockType.Air) solids++;
+				}
+			}
 		}
 
 		public void GenerateMesh() {
@@ -117,7 +122,6 @@ namespace CombinedVoxelMesh {
 			baseVerts = baseMesh.vertices;
 			baseNorm = baseMesh.normals;
 			baseTris = baseMesh.triangles;
-			//baseUVs = baseMesh.uv;
 			Profiler.EndSample();
 
 			Profiler.BeginSample("Init Arrays");
@@ -126,10 +130,6 @@ namespace CombinedVoxelMesh {
 			int halfC = voxels.Length / 2;
 			int vertC = halfC * baseVertC;
 
-			/*verts = new Vector3[vertC];
-			norms = new Vector3[vertC];
-			uv2 = new Vector2[vertC];
-			tris = new int[voxels.Length * baseTriC];*/
 			verts = new List<Vector3>(vertC);
 			norms = new List<Vector3>(vertC);
 			uv2 = new List<Vector2>(vertC);
@@ -144,8 +144,7 @@ namespace CombinedVoxelMesh {
 		Vector3[] vertArr;
 
 		public void UpdateMesh() {
-			//UpdateColliders();
-			UpdateCollidersNew();
+			UpdateColliders();
 
 			verts.Clear();
 			norms.Clear();
@@ -153,73 +152,6 @@ namespace CombinedVoxelMesh {
 			tris.Clear();
 
 			Profiler.BeginSample("Fill Mesh Data");
-			#region OLD
-			/*int i_vert = 0, i_tri = 0;
-			for (int i = 0; i < voxels.Length; i++) {
-				Voxel v = voxels[i];
-
-				Profiler.BeginSample("Culling");
-				bool skip = v.id == BlockType.Air;
-				if (!skip) {
-					skip = true;
-					for (int j = 0; j < 6; j++) {
-						try {
-							if (voxels[i + offsets[j]].id == BlockType.Air) {
-								skip = false;
-								break;
-							}
-						} catch { }
-					}
-				}
-				Profiler.EndSample();
-				if (skip) {
-					for (int j = 0; j < baseVertC; j++, i_vert++)
-						verts[i_vert] = zero;
-					i_tri += baseTriC;
-					continue;
-				}
-
-				Vector3 p = IndexToXYZ(i);
-				for (int j = 0; j < baseVertC; j++, i_vert++) {
-					verts[i_vert] = p + baseVerts[j];
-					norms[i_vert] = baseNorm[j];
-					uv2[i_vert] = new Vector2((byte)v.id, 0);
-				}
-
-				int tri_off = i * baseVertC;
-				for (int j = 0; j < baseTriC; j++)
-					tris[i_tri++] = tri_off + baseTris[j];
-			}*/
-			#endregion
-			#region OLD2
-			/*for (int i = 0; i < boxes; i++) {
-				BoxCollider c = colliders[i];
-				Vector3 cent = c.center;
-				Vector3 sc = c.size;
-
-				Voxel v = voxels[XYZtoIndex(VecToRounded(cent))];
-				Vector2 uv_id = new Vector2((byte)v.id, 0);
-
-				for (int j = 0; j < baseVertC; j++) {
-					Vector3 p = baseVerts[j];
-					p.x *= sc.x;
-					p.y *= sc.y;
-					p.z *= sc.z;
-					p.x += cent.x;
-					p.y += cent.y;
-					p.z += cent.z;
-					vertArr[j] = p;
-					uvArr[j] = uv_id;
-				}
-				verts.AddRange(vertArr);
-				uv2.AddRange(uvArr);
-				norms.AddRange(baseNorm);
-
-				int tri_off = i * baseVertC;
-				for (int j = 0; j < baseTriC; j++)
-					tris.Add(tri_off + baseTris[j]);
-			}*/
-			#endregion
 
 			InitFill();
 			int i_box = 0;
@@ -290,93 +222,6 @@ namespace CombinedVoxelMesh {
 			}
 		}
 
-		#region Coll Old
-		/*void UpdateColliders() {
-			int i_col = 0, h = 0;
-			Vector3Int p = Vector3Int.zero;
-			Vector3 s = new Vector3(1f, 0f, 1f), c_p = Vector3.zero;
-
-			BlockType last = (BlockType)255;
-
-			for (int z = 0; z < size.z; z++) {
-				p.z = z;
-				for (int x = 0; x < size.x; x++) {
-					p.x = x;
-					for (int y = 0; y < size.y; y++) {
-						p.y = y;
-						Voxel v = voxels[XYZtoIndex(p)];
-
-						if (v.id != last) {
-							if (h > 0) {
-								BoxCollider bc = null;
-								bool merge = false;
-								float centY = y - (h * 0.5f) - 0.5f;
-
-								if (i_col > 0) {
-									for (int i = i_col - 1; i >= 0; i--) {
-										bc = colliders[i];
-
-										if (bc.center.z == z && bc.center.y == centY && bc.size.y == h && ((bc.center.x + bc.size.x / 2) > x - 1)) {
-											merge = true;
-
-											c_p.x = bc.center.x + 0.5f;
-											c_p.z = bc.center.z;
-											c_p.y = bc.center.y;
-
-											s.x = bc.size.x + 1;
-											s.z = bc.size.z;
-											s.y = h;
-
-											/*for (int j = i - 1; j >= 0; j--) {
-												BoxCollider bc_1 = colliders[j];
-
-												if (bc_1.center.x == c_p.x && bc_1.center.y == c_p.y && bc_1.size.y == h && bc_1.size.x == s.x && ((bc_1.center.z + bc_1.size.z / 2) > z - 1)) {
-													bc = bc_1;
-
-													c_p.z += 0.5f;
-													s.z++;
-													break;
-												}
-											}*
-											break;
-										}
-									}
-								}
-								if (!merge) {
-									bc = colliders[i_col++];
-									bc.enabled = false;
-
-									c_p.x = x;
-									c_p.z = z;
-									c_p.y = centY;
-
-									s.x = 1;
-									s.z = 1;
-									s.y = h;
-								}
-
-								bc.center = c_p;
-								bc.size = s;
-
-								//if (!merge) bc.enabled = true;
-								h = 0;
-							}
-
-							last = v.id;
-						}
-
-						if (v.id == BlockType.Air) h = 0;
-						else h++;
-					}
-				}
-			}
-
-			for (int i = 0; i < i_col; i++) colliders[i].enabled = true;
-			for (; i_col < boxes; i_col++) colliders[i_col].enabled = false;
-			boxes = i_col;
-		}*/
-		#endregion
-
 		void InitFill() {
 			for (int i = 0; i < filled.Length; i++) filled[i] = false;
 		}
@@ -442,7 +287,7 @@ namespace CombinedVoxelMesh {
 			p.z = pZ + (dimZ - 1) * 0.5f;
 		}
 
-		void UpdateCollidersNew() {
+		void UpdateColliders() {
 			InitFill();
 
 			int i_col = 0;
@@ -462,23 +307,6 @@ namespace CombinedVoxelMesh {
 			for (int i = i_col; i < colliderC; i++) colliders[i].enabled = false;
 			colliderC = i_col;
 		}
-
-		/*IEnumerator UpdateColliders() {
-            Transform camT = Camera.main.transform;
-
-            while (true) {
-                Vector3 camPos = camT.position;
-                float r = 8f;
-                Vector3Int xyz = WorldToXYZ(camPos);
-                for (int i = 0; i < colliders.Length; i++) {
-                    GameObject c = colliders[i];
-                    bool newState = voxels[i].id != BlockType.Air && Vector3.Distance(c.transform.position, camPos) <= r;
-                    if (c.activeSelf != newState) c.SetActive(newState);
-                    if (i % 16 == 0) yield return null;
-                }
-                yield return null;
-            }
-        }*/
 
 		#region Conversions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

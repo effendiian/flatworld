@@ -262,7 +262,7 @@ MonoBehaviour:
   world2: {fileID: 1235171232}
   add: 49
   remove: 50
-  allowHold: 0
+  allowHold: 1
 --- !u!114 &248616022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -452,7 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e310f40252df4ed4b80ab2c091e0bc71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 5, y: 5}
+  size: {x: 3, y: 3}
   chunkPrefab: {fileID: 2591361091606800554, guid: 2c58be513c32632429b2f1e9cc1462d9,
     type: 3}
   cam: {fileID: 248616015}
