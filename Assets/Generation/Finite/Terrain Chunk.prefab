@@ -103,7 +103,7 @@ MonoBehaviour:
     height: 1
   - type: 0
     height: 8
-  cubeMesh: {fileID: 0}
+  cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}
   hideColliders: 0
