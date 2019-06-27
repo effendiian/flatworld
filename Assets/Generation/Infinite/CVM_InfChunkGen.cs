@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +14,9 @@ namespace CombinedVoxelMesh {
 		}
 	}
 
+	/// <summary> Generate Infinite Chunks </summary>
 	public class CVM_InfChunkGen : MonoBehaviour {
+		/// <summary> Size of world in chunks </summary>
 		public Vector2Int size = Vector2Int.one;
 		public GameObject chunkPrefab;
 		public GameObject cam;
@@ -28,34 +31,36 @@ namespace CombinedVoxelMesh {
 
 		Vector2Int viewPos = new Vector2Int(int.MinValue, int.MinValue);
 
-		void Start() {
+		void Start() => StartCoroutine(GenChunks());
+
+		IEnumerator GenChunks() {
 			chunks = new CVM_Chunk[size.x * size.y];
+			chunkMap = new Dictionary<Vector2Int, CombinedVoxelMesh>(chunks.Length);
+			voxelMap = new Dictionary<Vector2Int, Voxel[]>(chunks.Length);
 
 			Vector3Int chunkSize = chunkPrefab.GetComponent<CombinedVoxelMesh>().size;
-
 			csx = chunkSize.x;
 			csy = chunkSize.y;
 			csz = chunkSize.z;
 
-			chunkMap = new Dictionary<Vector2Int, CombinedVoxelMesh>(chunks.Length);
-			voxelMap = new Dictionary<Vector2Int, Voxel[]>(chunks.Length);
+			r = size.x / 2;
 
 			viewPos = GetViewpos();
 			Vector2Int off = viewPos - new Vector2Int(size.x / 2, size.y / 2);
 
-			int x, z;
 			for (int i = 0; i < chunks.Length; i++) {
-				IndexToXZ(i, out x, out z);
+				IndexToXZ(i, out int x, out int z);
 				Vector2Int xz = new Vector2Int(x, z) + off;
-				CombinedVoxelMesh CVM = Instantiate(chunkPrefab, new Vector3(xz.x * chunkSize.x, 0f, xz.y * chunkSize.z), Quaternion.identity, transform).GetComponent<CombinedVoxelMesh>();
+				GameObject o = Instantiate(chunkPrefab, new Vector3(xz.x * chunkSize.x, 0f, xz.y * chunkSize.z), Quaternion.identity, transform);
+				o.name = $"Chunk {i + 1}";
+				print($"{o.name} generated");
+
+				CombinedVoxelMesh CVM = o.GetComponent<CombinedVoxelMesh>();
 				chunks[i] = new CVM_Chunk(xz, CVM);
 				chunkMap[xz] = CVM;
-				voxelMap[xz] = CVM.voxels;
+				yield return null;
 			}
-
-			r = size.x / 2;
 		}
-
 
 		void Update() {
 			Vector2Int pos = GetViewpos();
@@ -72,7 +77,8 @@ namespace CombinedVoxelMesh {
 				CVM_Chunk c = chunks[i];
 				Vector2Int dif = c.pos - vpos;
 				if (Mathf.Max(Mathf.Abs(dif.x), Mathf.Abs(dif.y)) > r) {
-					voxelMap[c.pos] = c.CVM.voxels;
+					if (!voxelMap.ContainsKey(c.pos)) voxelMap[c.pos] = new Voxel[c.CVM.voxels.Length];
+					Array.Copy(c.CVM.voxels, voxelMap[c.pos], c.CVM.voxels.Length);
 
 					int x = p2.x - c.pos.x;
 					int z = p2.y - c.pos.y;
@@ -86,15 +92,12 @@ namespace CombinedVoxelMesh {
 					o.SetActive(false);
 					o.transform.position = new Vector3(x * csx, 0, z * csz);
 
-					Voxel[] vox;
-					if (voxelMap.ContainsKey(nPos)) vox = voxelMap[nPos];
-					else {
-						vox = new Voxel[csx * csy * csz];
-						CombinedVoxelMesh.FillFlat(vox, c.CVM.size, c.CVM.layers);
-						voxelMap[nPos] = vox;
+					if (voxelMap.ContainsKey(nPos)) {
+						//c.CVM.voxels = voxelMap[nPos];
+						Array.Copy(voxelMap[nPos], c.CVM.voxels, voxelMap[nPos].Length);
 					}
-					c.CVM.voxels = vox;
-					c.CVM.UpdateMesh();
+					else c.CVM.FillVoxels();
+					c.CVM.Regenerate();
 
 					o.SetActive(true);
 				}
@@ -109,8 +112,7 @@ namespace CombinedVoxelMesh {
 			z = Mathf.FloorToInt(Mathf.Round(world.z) / csz);
 		}
 		public Vector2Int WorldToXZ(Vector3 world) {
-			int x, z;
-			WorldToXZ(world, out x, out z);
+			WorldToXZ(world, out int x, out int z);
 			return new Vector2Int(x, z);
 		}
 		public int XZtoIndex(int x, int z) => x + z * size.x;

@@ -335,7 +335,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17867bd40a69b61498a9f4b69af50bc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  world: {fileID: 1245256907}
+  chunk: {fileID: 1245256907}
   add: 49
   remove: 50
   allowHold: 1
@@ -470,7 +470,6 @@ MonoBehaviour:
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}
   hideColliders: 0
-  solids: 0
 --- !u!23 &1245256908
 MeshRenderer:
   m_ObjectHideFlags: 0

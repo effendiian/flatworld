@@ -17,7 +17,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967294
+  m_StaticEditorFlags: 126
   m_IsActive: 1
 --- !u!4 &2591361091606800552
 Transform:
@@ -103,8 +103,7 @@ MonoBehaviour:
     height: 1
   - type: 0
     height: 8
-  baseMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  cubeMesh: {fileID: 0}
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}
   hideColliders: 0
-  solids: 0
