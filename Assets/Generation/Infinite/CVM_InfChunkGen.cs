@@ -58,6 +58,7 @@ namespace CombinedVoxelMesh {
 				CombinedVoxelMesh CVM = o.GetComponent<CombinedVoxelMesh>();
 				chunks[i] = new CVM_Chunk(xz, CVM);
 				chunkMap[xz] = CVM;
+				voxelMap[xz] = CVM.voxels;
 				yield return null;
 			}
 		}
@@ -77,9 +78,6 @@ namespace CombinedVoxelMesh {
 				CVM_Chunk c = chunks[i];
 				Vector2Int dif = c.pos - vpos;
 				if (Mathf.Max(Mathf.Abs(dif.x), Mathf.Abs(dif.y)) > r) {
-					if (!voxelMap.ContainsKey(c.pos)) voxelMap[c.pos] = new Voxel[c.CVM.voxels.Length];
-					Array.Copy(c.CVM.voxels, voxelMap[c.pos], c.CVM.voxels.Length);
-
 					int x = p2.x - c.pos.x;
 					int z = p2.y - c.pos.y;
 					Vector2Int nPos = new Vector2Int(x, z);
@@ -88,15 +86,16 @@ namespace CombinedVoxelMesh {
 					chunkMap[nPos] = c.CVM;
 
 					GameObject o = c.CVM.gameObject;
-
 					o.SetActive(false);
 					o.transform.position = new Vector3(x * csx, 0, z * csz);
 
 					if (voxelMap.ContainsKey(nPos)) {
-						//c.CVM.voxels = voxelMap[nPos];
-						Array.Copy(voxelMap[nPos], c.CVM.voxels, voxelMap[nPos].Length);
+						c.CVM.voxels = voxelMap[nPos];
 					}
-					else c.CVM.FillVoxels();
+					else {
+						c.CVM.voxels = voxelMap[nPos] = new Voxel[c.CVM.voxels.Length];
+						c.CVM.FillVoxels();
+					}
 					c.CVM.Regenerate();
 
 					o.SetActive(true);

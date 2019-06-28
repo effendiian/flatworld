@@ -67,7 +67,7 @@ namespace CombinedVoxelMesh {
 		//}
 		#endregion
 
-		void Start() {
+		void Awake() {
 			UpdateSize();
 			Generate();
 		}
@@ -112,7 +112,7 @@ namespace CombinedVoxelMesh {
 		}
 		/// <summary> Populate voxels using perlin noise terrain at given position and scale. </summary>
 		public static void FillPerlin(Voxel[] voxels, Vector2Int pos, Vector3Int size, Vector3 scale) {
-			const int mirrOff = 0;
+			const int mirrOff = 1024;
 			int pX = pos.x - mirrOff, pY = pos.y - mirrOff;
 
 			int sx = size.x, sxz = sx * size.z;
@@ -188,7 +188,7 @@ namespace CombinedVoxelMesh {
 				XYZtoIndex(0, -1, 0), XYZtoIndex(0, 1, 0),
 				XYZtoIndex(0, 0, -1), XYZtoIndex(0, 0, 1)
 			};*/
-			
+
 			// Copy cube mesh data
 			cubeVerts = cubeMesh.vertices;
 			cubeNorm = cubeMesh.normals;
