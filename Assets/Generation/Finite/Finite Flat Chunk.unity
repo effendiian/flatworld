@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 248616024}
   - component: {fileID: 248616023}
   - component: {fileID: 248616022}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -261,7 +261,7 @@ MonoBehaviour:
   volumeTrigger: {fileID: 248616018}
   volumeLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   stopNaNPropagation: 1
   finalBlitToCameraTarget: 0
   antialiasingMode: 0
@@ -453,7 +453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1a92c23ec00804983b01d8587146eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 16, y: 22, z: 16}
+  size: {x: 32, y: 32, z: 32}
   voxels: []
   layers:
   - type: 4
@@ -465,7 +465,7 @@ MonoBehaviour:
   - type: 1
     height: 1
   - type: 0
-    height: 8
+    height: 18
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}

@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 248616023}
   - component: {fileID: 248616022}
   - component: {fileID: 248616021}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -278,7 +278,7 @@ MonoBehaviour:
   volumeTrigger: {fileID: 248616018}
   volumeLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   stopNaNPropagation: 1
   finalBlitToCameraTarget: 0
   antialiasingMode: 0
@@ -452,7 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e310f40252df4ed4b80ab2c091e0bc71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 7, y: 7}
+  size: {x: 13, y: 13}
   chunkPrefab: {fileID: 2591361091606800554, guid: 2c58be513c32632429b2f1e9cc1462d9,
     type: 3}
   cam: {fileID: 248616015}

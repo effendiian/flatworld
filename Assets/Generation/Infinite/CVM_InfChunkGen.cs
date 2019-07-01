@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace CombinedVoxelMesh {
@@ -66,12 +67,15 @@ namespace CombinedVoxelMesh {
 		void Update() {
 			Vector2Int pos = GetViewpos();
 			if (pos != viewPos) {
-				UpdatePositons(pos);
+				//UpdatePositons(pos);
+				StartCoroutine(UpdatePositons(pos));
 			}
 		}
 
 		Vector2Int GetViewpos() => WorldToXZ(cam.transform.position);
-		void UpdatePositons(Vector2Int vpos) {
+		IEnumerator UpdatePositons(Vector2Int vpos, int msLimit = 100) {
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
 			Vector2Int p2 = viewPos + vpos;
 
 			for (int i = 0; i < chunks.Length; i++) {
@@ -83,25 +87,30 @@ namespace CombinedVoxelMesh {
 					Vector2Int nPos = new Vector2Int(x, z);
 
 					chunks[i].pos = nPos;
-					chunkMap[nPos] = c.CVM;
+					CombinedVoxelMesh cvm = c.CVM;
+					chunkMap[nPos] = cvm;
 
-					GameObject o = c.CVM.gameObject;
-					o.SetActive(false);
+					//if (CombinedVoxelMesh.colliderHolder.activeSelf) CombinedVoxelMesh.colliderHolder.SetActive(false);
+					GameObject o = cvm.gameObject;
 					o.transform.position = new Vector3(x * csx, 0, z * csz);
 
 					if (voxelMap.ContainsKey(nPos)) {
-						c.CVM.voxels = voxelMap[nPos];
+						cvm.voxels = voxelMap[nPos];
 					}
 					else {
-						c.CVM.voxels = voxelMap[nPos] = new Voxel[c.CVM.voxels.Length];
-						c.CVM.FillVoxels();
+						cvm.voxels = voxelMap[nPos] = new Voxel[cvm.voxels.Length];
+						cvm.FillVoxels();
 					}
-					c.CVM.Regenerate();
+					cvm.Regenerate();
 
-					o.SetActive(true);
+					if (sw.ElapsedMilliseconds >= msLimit) {
+						//if (!CombinedVoxelMesh.colliderHolder.activeSelf) CombinedVoxelMesh.colliderHolder?.SetActive(true);
+						yield return null;
+					}
 				}
 			}
 
+			//if (!CombinedVoxelMesh.colliderHolder.activeSelf) CombinedVoxelMesh.colliderHolder?.SetActive(true);
 			viewPos = vpos;
 		}
 

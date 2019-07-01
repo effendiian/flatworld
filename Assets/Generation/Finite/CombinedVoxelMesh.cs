@@ -85,8 +85,7 @@ namespace CombinedVoxelMesh {
 			filled = new bool[voxels.Length];
 
 			FillVoxels();
-			//InitColliders();
-			StartCoroutine(InitCollidersCoro());
+			InitColliders();
 			InitMesh();
 			Regenerate();
 		}
@@ -115,17 +114,17 @@ namespace CombinedVoxelMesh {
 			const int mirrOff = 1024;
 			int pX = pos.x - mirrOff, pY = pos.y - mirrOff;
 
-			int sx = size.x, sxz = sx * size.z;
+			int sx = size.x, sy = size.y, sz = size.z, sxz = sx * size.z;
 			float hsy = size.y / 2;
 
 			float scx = 1f / sx * scale.x;
 			float scz = 1f / size.z * scale.z;
 			float scy = size.y * scale.y;
 
-			for (int z = 0; z < size.z; z++) {
-				for (int x = 0; x < size.x; x++) {
+			for (int z = 0; z < sz; z++) {
+				for (int x = 0; x < sx; x++) {
 					int h = Mathf.RoundToInt(Mathf.PerlinNoise((pX + x) * scx, (pY + z) * scz) * scy + hsy);
-					for (int y = 0; y < size.y; y++) {
+					for (int y = 0; y < sy; y++) {
 						BlockType ty;
 						if (y == 0) ty = BlockType.Bedrock;
 						else if (y < h * 0.66f) ty = BlockType.Stone;
@@ -145,8 +144,7 @@ namespace CombinedVoxelMesh {
 		/// <summary> Regenerate mesh and colliders. Used after voxel(s) is changed. </summary>
 		public void Regenerate() {
 			UpdateMesh();
-			if (collidersInited) UpdateColliders();
-			else StartCoroutine(InitCollidersWait());// if colliders aren't ready, wait
+			UpdateColliders();
 		}
 
 		#region Mesh
@@ -197,7 +195,7 @@ namespace CombinedVoxelMesh {
 			Profiler.BeginSample("Init Arrays");
 			cubeVertC = cubeVerts.Length;
 			cubeTriC = cubeTris.Length;
-			int halfC = voxels.Length / 2;
+			int halfC = voxels.Length / 64;
 			int vertC = halfC * cubeVertC;
 
 			verts = new List<Vector3>(vertC);
@@ -267,85 +265,32 @@ namespace CombinedVoxelMesh {
 		#endregion
 
 		#region Colliders
-		/// <summary> Collider pool. </summary>
-		BoxCollider[] colliders;
-		/// <summary> Active collider count </summary>
+		List<BoxCollider> colliders;
 		int colliderC = 0;
-		/// <summary> Create colliders (depreciated, too slow to do in one frame, InitCollidersCoro instead). </summary>
-		void InitColliders() {
-			if (colliders == null || colliders.Length == 0) {
-				colliderC = voxels.Length / 2;
-				colliders = new BoxCollider[colliderC];
 
-				/*for (int i = 0; i < boxes; i++) {
-					GameObject o = Instantiate(colliderPrefab, transform.position, Quaternion.identity, transform);
-					if (hideColliders) o.hideFlags = HideFlags.HideInHierarchy;
-					colliders[i] = o.AddComponent<BoxCollider>();
-					o.SetActive(true);
-				}*/
-
-				GameObject o = Instantiate(colliderPrefab, transform.position, Quaternion.identity, transform);
-				if (hideColliders) o.hideFlags = HideFlags.HideInHierarchy;
-
-				for (int i = 0; i < colliders.Length; i++)
-					colliders[i] = o.AddComponent<BoxCollider>();
-
-				o.SetActive(true);
-			}
-		}
-
-		/// <summary> Minimum number of colliders ready </summary>
-		bool collidersInited = false;
-		/// <summary> Spawn colliders over time, to be used in UpdateColliders. </summary>
-		IEnumerator InitCollidersCoro() {
-			colliderC = voxels.Length / 2;
-			colliders = new BoxCollider[colliderC];
-
-			// Collider container GameObject
-			GameObject o = Instantiate(colliderPrefab, transform.position, Quaternion.identity, transform);
-			if (hideColliders) o.hideFlags = HideFlags.HideInHierarchy;
-
-
-			// (jank) Run Box Expansion algo to get minimum number of colliders needed
-
-			InitFill();
-
-			int colC = 0;
-			for (int v_i = 0; v_i < voxels.Length; v_i++) {
-				if (filled[v_i] || voxels[v_i].ty == BlockType.Air) continue;
-
-				ExpandBox(v_i, out int dimX, out int dimY, out int dimZ, out Vector3 p, false);
-				colC++;
-			}
-
-
-			int printInt = colliders.Length / 10;
-			for (int i = 0; i < colliders.Length; i++) {// Create colliders (1 per frame)
-				BoxCollider bc = o.AddComponent<BoxCollider>();
-				bc.enabled = false;
-				colliders[i] = bc;// Add collider to pool
-				if (i == colC) {
-					collidersInited = true;
-					o.SetActive(true);
+		public static GameObject colliderHolder;
+		public GameObject ColliderHolder {
+			get {
+				if (colliderHolder == null) {
+					colliderHolder = Instantiate(colliderPrefab, Vector3.zero, Quaternion.identity);
+					if (hideColliders) colliderHolder.hideFlags = HideFlags.HideInHierarchy;
+					colliderHolder.SetActive(true);
 				}
-				if (i > 0 && i % printInt == 0) print($"{i * 100 / colliders.Length}%");
-				yield return null;
+				return colliderHolder;
 			}
-
-			o.SetActive(true);
-			collidersInited = true;
 		}
 
-		/// <summary> Wait for minimum amount of colliders to be ready. </summary>
-		IEnumerator InitCollidersWait() {
-			yield return new WaitUntil(() => collidersInited);// Wait for minimum needed colliders
-			print($"{name} Colliders Inited");
-			UpdateColliders();
+
+		void InitColliders() {
+			//if (colliders == null) 
+			colliders = new List<BoxCollider>(voxels.Length / 64);
 		}
 
 		/// <summary> Regenerate colliders </summary>
 		void UpdateColliders() {
 			InitFill();
+
+			Vector3 tp = transform.position;
 
 			int i_col = 0;
 			for (int v_i = 0; v_i < voxels.Length; v_i++) {
@@ -355,16 +300,20 @@ namespace CombinedVoxelMesh {
 				ExpandBox(v_i, out int dimX, out int dimY, out int dimZ, out Vector3 p, false);
 
 				// Fit collider to box
-				BoxCollider bc = colliders[i_col++];
+				BoxCollider bc;
+				if (i_col == colliders.Count) {
+					colliders.Add(bc = ColliderHolder.AddComponent<BoxCollider>());
+					bc.hideFlags = HideFlags.HideInInspector;
+				}
+				else bc = colliders[i_col];
+				i_col++;
 				bc.size = new Vector3(dimX, dimY, dimZ);
-				bc.center = p;
+				bc.center = tp + p;
 				bc.enabled = true;
 			}
 
-			for (int i = i_col; i < colliderC; i++) {// Disable unused colliders
-				if (colliders[i] == null) break;
+			for (int i = i_col; i < colliderC; i++) // Disable unused colliders
 				colliders[i].enabled = false;
-			}
 			colliderC = i_col;// Set active collider count
 		}
 		#endregion
@@ -392,6 +341,7 @@ namespace CombinedVoxelMesh {
 			int x = 0, z = 0;
 			BlockType ty = voxels[i].ty;
 
+			Profiler.BeginSample("Find Limits");
 			// Expand box in X direction until obstancle: box X size.
 			// Then expand box in Z direction until obstacle: box Z size.
 			// Then expand box in Y direction until obstacle: box Y size.
@@ -411,12 +361,16 @@ namespace CombinedVoxelMesh {
 					}
 				}
 			}
+			Profiler.EndSample();
 
+			Profiler.BeginSample("Mark Filled");
 			// Mark voxels as filled to avoid refillling them
 			for (int y = pY; y < pY + dimY; y++)
 				for (z = pZ; z < pZ + dimZ; z++)
 					for (x = pX; x < pX + dimX; x++)
 						filled[XYZtoIndex(x, y, z)] = true;
+			Profiler.EndSample();
+
 			// Box center position
 			p.x = pX + (dimX - 1) * 0.5f;
 			p.y = pY + (dimY - 1) * 0.5f;
