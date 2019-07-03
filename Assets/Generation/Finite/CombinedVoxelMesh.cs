@@ -68,6 +68,8 @@ namespace CombinedVoxelMesh {
 		#endregion
 
 		void Awake() {
+			if (name.EndsWith("(Clone)", StringComparison.OrdinalIgnoreCase)) name = name.Remove(name.IndexOf("(Clone)"));
+
 			UpdateSize();
 			Generate();
 		}
@@ -167,7 +169,11 @@ namespace CombinedVoxelMesh {
 		static int[] cubeTris;
 		static int cubeVertC, cubeTriC;
 		//static int[] offsets;
-		static readonly Vector3 zero = Vector3.zero;
+
+		// Temporary arrays for copying mesh data
+		Vector2[] uvBuff;
+		Vector3[] vertBuff;
+		int[] triBuff;
 		#endregion
 
 		/// <summary> Init variables and allocate space for mesh. </summary>
@@ -175,9 +181,10 @@ namespace CombinedVoxelMesh {
 			MF = GetComponent<MeshFilter>();
 			MR = GetComponent<MeshRenderer>();
 
-			msh = new Mesh();
-			msh.name = "Combined Voxel Mesh";
-			msh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;// allow up to 4,294,967,295 vertices
+			msh = new Mesh {
+				name = $"{name} Voxel Mesh",
+				indexFormat = UnityEngine.Rendering.IndexFormat.UInt32// allow up to 4,294,967,295 vertices
+			};
 			msh.MarkDynamic();
 			MF.mesh = msh;
 
@@ -195,7 +202,7 @@ namespace CombinedVoxelMesh {
 			Profiler.BeginSample("Init Arrays");
 			cubeVertC = cubeVerts.Length;
 			cubeTriC = cubeTris.Length;
-			int halfC = voxels.Length / 64;
+			int halfC = voxels.Length / 32;
 			int vertC = halfC * cubeVertC;
 
 			verts = new List<Vector3>(vertC);
@@ -203,15 +210,13 @@ namespace CombinedVoxelMesh {
 			uv2 = new List<Vector2>(vertC);
 			tris = new List<int>(halfC * cubeTriC);
 
-			uvArr = new Vector2[cubeVertC];
-			vertArr = new Vector3[cubeVertC];
+			uvBuff = new Vector2[cubeVertC];
+			vertBuff = new Vector3[cubeVertC];
+			triBuff = new int[cubeTriC];
 			Profiler.EndSample();
 		}
 
-		/// <summary> Temporary array for copying uv data. </summary>
-		Vector2[] uvArr;
-		/// <summary> Temporary array for copying vertex data. </summary>
-		Vector3[] vertArr;
+
 		/// <summary> Generate mesh from voxels. </summary>
 		void UpdateMesh() {
 			// Clear mesh data to be overwritten
@@ -241,16 +246,17 @@ namespace CombinedVoxelMesh {
 					p.x += c_p.x;
 					p.y += c_p.y;
 					p.z += c_p.z;
-					vertArr[j] = p;
-					uvArr[j] = uv_id;
+					vertBuff[j] = p;
+					uvBuff[j] = uv_id;
 				}
-				verts.AddRange(vertArr);
-				uv2.AddRange(uvArr);
+				verts.AddRange(vertBuff);
+				uv2.AddRange(uvBuff);
 				norms.AddRange(cubeNorm);
 
 				int ind_off = i_box * cubeVertC;// vertex index offset to match cube just created
 				for (int j = 0; j < cubeTriC; j++)// Add cube triangle vertex indices
-					tris.Add(ind_off + cubeTris[j]);
+					triBuff[j] = ind_off + cubeTris[j];
+				tris.AddRange(triBuff);
 
 				i_box++;// mesh box counter
 			}
@@ -265,11 +271,12 @@ namespace CombinedVoxelMesh {
 		#endregion
 
 		#region Colliders
+		static Stack<BoxCollider> pool;
 		List<BoxCollider> colliders;
 		int colliderC = 0;
 
-		public static GameObject colliderHolder;
-		public GameObject ColliderHolder {
+		GameObject colliderHolder;
+		/*public GameObject ColliderHolder {
 			get {
 				if (colliderHolder == null) {
 					colliderHolder = Instantiate(colliderPrefab, Vector3.zero, Quaternion.identity);
@@ -278,16 +285,23 @@ namespace CombinedVoxelMesh {
 				}
 				return colliderHolder;
 			}
-		}
+		}*/
 
 
 		void InitColliders() {
 			//if (colliders == null) 
 			colliders = new List<BoxCollider>(voxels.Length / 64);
+			if (pool == null) pool = new Stack<BoxCollider>(voxels.Length / 64);
+
+			colliderHolder = Instantiate(colliderPrefab, Vector3.zero, Quaternion.identity);
+			colliderHolder.name = $"{name} Colliders";
+			if (hideColliders) colliderHolder.hideFlags = HideFlags.HideInHierarchy;
+			colliderHolder.SetActive(true);
 		}
 
 		/// <summary> Regenerate colliders </summary>
 		void UpdateColliders() {
+			colliderHolder.SetActive(false);
 			InitFill();
 
 			Vector3 tp = transform.position;
@@ -302,19 +316,30 @@ namespace CombinedVoxelMesh {
 				// Fit collider to box
 				BoxCollider bc;
 				if (i_col == colliders.Count) {
-					colliders.Add(bc = ColliderHolder.AddComponent<BoxCollider>());
-					bc.hideFlags = HideFlags.HideInInspector;
+					if (pool.Count > 0)
+						bc = pool.Pop();
+					else {
+						bc = colliderHolder.AddComponent<BoxCollider>();
+						bc.hideFlags = HideFlags.HideInInspector;
+					}
+					colliders.Add(bc);
 				}
 				else bc = colliders[i_col];
 				i_col++;
 				bc.size = new Vector3(dimX, dimY, dimZ);
 				bc.center = tp + p;
-				bc.enabled = true;
+				if (!bc.enabled) bc.enabled = true;
 			}
 
-			for (int i = i_col; i < colliderC; i++) // Disable unused colliders
-				colliders[i].enabled = false;
+			for (int i = i_col; i < colliderC; i++) {// Cleanup unused colliders
+				BoxCollider bc = colliders[i];
+				bc.enabled = false;
+				pool.Push(bc);
+			}
+			if (i_col < colliderC)
+				colliders.RemoveRange(i_col, colliderC - i_col);
 			colliderC = i_col;// Set active collider count
+			colliderHolder.SetActive(true);
 		}
 		#endregion
 
@@ -347,14 +372,14 @@ namespace CombinedVoxelMesh {
 			// Then expand box in Y direction until obstacle: box Y size.
 			for (int y = pY; y < pY + dimY; y++) {
 				for (z = pZ; z < pZ + dimZ; z++) {
-					for (x = pX; x < pX + dimX; x++) {
-						i = XYZtoIndex(x, y, z);
+					i = XYZtoIndex(pX, y, z);
+					for (x = pX; x < pX + dimX; x++, i++) {
 						if ((onType ? voxels[i].ty != ty : voxels[i].ty == BlockType.Air) || filled[i]) {// Air or block type boundary: reached obstacle
 							if (y == pY && z == pZ) dimX = x - pX;// X limit found
 							else if (y == pY) dimZ = z - pZ;// Z limit found
 							else {// Y limit found
 								dimY = y - pY;
-								z = pZ + dimZ;
+								z = pZ + dimZ;// End loop
 							}
 							break;
 						}
@@ -365,10 +390,13 @@ namespace CombinedVoxelMesh {
 
 			Profiler.BeginSample("Mark Filled");
 			// Mark voxels as filled to avoid refillling them
-			for (int y = pY; y < pY + dimY; y++)
-				for (z = pZ; z < pZ + dimZ; z++)
-					for (x = pX; x < pX + dimX; x++)
-						filled[XYZtoIndex(x, y, z)] = true;
+			for (int y = pY; y < pY + dimY; y++) {
+				for (z = pZ; z < pZ + dimZ; z++) {
+					i = XYZtoIndex(pX, y, z);
+					for (x = pX; x < pX + dimX; x++, i++)
+						filled[i] = true;
+				}
+			}
 			Profiler.EndSample();
 
 			// Box center position

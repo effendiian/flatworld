@@ -28,12 +28,11 @@ namespace CombinedVoxelMesh {
 
 		/// <summary> Generate Chunk every frame </summary>
 		IEnumerator GenChunks() {
-			int x, z;
 			for (int i = 0; i < chunks.Length; i++) {// Instantiate Chunks and add to array
-				IndexToXZ(i, out x, out z);
+				IndexToXZ(i, out int x, out int z);
+				chunkPrefab.name = $"Chunk {i + 1}";
 				GameObject o = Instantiate(chunkPrefab, new Vector3(x * csx, 0f, z * csz), Quaternion.identity, transform);
-				o.name = $"Chunk {i + 1}";
-				print($"{o.name} generated");
+				print($"{o.name} Generated");
 				chunks[i] = o.GetComponent<CombinedVoxelMesh>();
 				yield return null;
 			}
