@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1a92c23ec00804983b01d8587146eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 32, y: 22, z: 32}
+  size: {x: 32, y: 32, z: 32}
   voxels: []
   layers:
   - type: 4
@@ -102,8 +102,35 @@ MonoBehaviour:
   - type: 1
     height: 1
   - type: 0
-    height: 8
+    height: 18
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
     type: 3}
   hideColliders: 0
+  noiseScale: {x: 0.25, y: 0.75, z: 0.25}
+  noiseLayers: 8
+  noiseHeightScale: 0.5
+  noiseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

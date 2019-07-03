@@ -68,7 +68,7 @@ namespace CombinedVoxelMesh {
 		#endregion
 
 		void Awake() {
-			if (name.EndsWith("(Clone)", StringComparison.OrdinalIgnoreCase)) name = name.Remove(name.IndexOf("(Clone)"));
+			if (name.EndsWith("(Clone)")) name = name.Remove(name.IndexOf("(Clone)"));
 
 			UpdateSize();
 			Generate();
@@ -96,7 +96,24 @@ namespace CombinedVoxelMesh {
 		/// <summary> Populate voxels with terrain data. </summary>
 		public void FillVoxels() {
 			//FillFlat(voxels, size, layers);
-			FillPerlin(new Vector3(1f, 0.5f, 1f));
+			FillPerlin(noiseScale);
+		}
+
+		public Vector3 noiseScale = new Vector3(1f, 0.5f, 1f);
+		public int noiseLayers = 1;
+		public float noiseHeightScale = 0.5f;
+
+		public AnimationCurve noiseCurve = new AnimationCurve();
+
+		static float FractalPerlin(float x, float y, int layers, float scale) {
+			float z = 0f, scXY = 1f / scale;
+
+			for (int i = 0; i < layers; i++) {
+				float sc = Mathf.Pow(scXY, i), scH = Mathf.Pow(scale, i);
+				z += Mathf.PerlinNoise(x * sc, y * sc) * scH - (i == 0 ? 0f : scH * 0.5f);
+			}
+
+			return z;
 		}
 
 		/// <summary> Populate voxels with flat terrain using given layers. </summary>
@@ -112,20 +129,21 @@ namespace CombinedVoxelMesh {
 			}
 		}
 		/// <summary> Populate voxels using perlin noise terrain at given position and scale. </summary>
-		public static void FillPerlin(Voxel[] voxels, Vector2Int pos, Vector3Int size, Vector3 scale) {
+		public static void FillPerlin(Voxel[] voxels, Vector2Int pos, Vector3Int size, Vector3 scale, int noiseLayers, float noiseScale, AnimationCurve noiseCurve) {
 			const int mirrOff = 1024;
 			int pX = pos.x - mirrOff, pY = pos.y - mirrOff;
 
 			int sx = size.x, sy = size.y, sz = size.z, sxz = sx * size.z;
-			float hsy = size.y / 2;
 
 			float scx = 1f / sx * scale.x;
 			float scz = 1f / size.z * scale.z;
 			float scy = size.y * scale.y;
+			float hbais = (size.y - scy) / 2;
 
 			for (int z = 0; z < sz; z++) {
 				for (int x = 0; x < sx; x++) {
-					int h = Mathf.RoundToInt(Mathf.PerlinNoise((pX + x) * scx, (pY + z) * scz) * scy + hsy);
+					float noise = FractalPerlin((pX + x) * scx, (pY + z) * scz, noiseLayers, noiseScale);
+					int h = Mathf.RoundToInt(noiseCurve.Evaluate(noise) * scy + hbais);
 					for (int y = 0; y < sy; y++) {
 						BlockType ty;
 						if (y == 0) ty = BlockType.Bedrock;
@@ -140,7 +158,7 @@ namespace CombinedVoxelMesh {
 			}
 		}
 		/// <summary> Populate voxels using perlin noise using current position and size. </summary>
-		public void FillPerlin(Vector3 scale) => FillPerlin(voxels, new Vector2Int((int)transform.position.x, (int)transform.position.z), size, scale);
+		public void FillPerlin(Vector3 scale) => FillPerlin(voxels, new Vector2Int((int)transform.position.x, (int)transform.position.z), size, scale, noiseLayers, noiseHeightScale, noiseCurve);
 		#endregion
 
 		/// <summary> Regenerate mesh and colliders. Used after voxel(s) is changed. </summary>
