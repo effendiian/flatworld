@@ -75,6 +75,8 @@ namespace CombinedVoxelMesh {
 			Generate();
 		}
 
+		void OnDestroy() => instances.Remove(this);
+
 		void Clear() {
 			voxels = null;
 			if (colliders != null) {
@@ -92,7 +94,7 @@ namespace CombinedVoxelMesh {
 			InitMesh();
 			Regenerate();
 		}
-
+		
 		#region Voxels
 		/// <summary> Populate voxels with terrain data. </summary>
 		public void FillVoxels() {
