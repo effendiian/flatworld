@@ -51,7 +51,7 @@ namespace CombinedVoxelMesh {
 			instMap = new Dictionary<Vector2Int, CombinedVoxelMesh>(chunks.Length);
 			voxelMap = new Dictionary<Vector2Int, Voxel[]>(chunks.Length);
 
-			Vector3Int chunkSize = chunkPrefab.GetComponent<CombinedVoxelMesh>().size;
+			Vector3Int chunkSize = chunkPrefab.GetComponent<CombinedVoxelMesh>().settings.size;
 			csx = chunkSize.x;
 			csy = chunkSize.y;
 			csz = chunkSize.z;
@@ -66,18 +66,20 @@ namespace CombinedVoxelMesh {
 					if (x * x + y * y <= rsq) {
 						Vector2Int xz = viewPos + new Vector2Int((int)(x - 0.5f), (int)(y - 0.5f));
 						GameObject o = Instantiate(chunkPrefab, new Vector3(xz.x * chunkSize.x, 0f, xz.y * chunkSize.z), Quaternion.identity, transform);
-						o.name = $"Chunk {i + 1}";
-						print($"{o.name} Generated");
 
 						CombinedVoxelMesh CVM = o.GetComponent<CombinedVoxelMesh>();
 						chunks[i++] = new CVM_Chunk(xz, viewPos, CVM);
 						instMap[xz] = CVM;
 						voxelMap[xz] = CVM.voxels;
+
+						o.name = $"Chunk {i}";
+						if (i % 256 == 0) print($"{i} Chunks Generated");
 						yield return null;
 					}
 				}
 			}
 
+			print($"{i} Chunks Generated");
 			generated = true;
 		}
 

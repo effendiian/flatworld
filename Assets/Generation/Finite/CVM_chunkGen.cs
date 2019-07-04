@@ -8,7 +8,7 @@ namespace CombinedVoxelMesh {
 		/// <summary> Size of world in chunks </summary>
 		public Vector2Int size = Vector2Int.one;
 		public GameObject chunkPrefab;
-		
+
 		[HideInInspector]
 		public CombinedVoxelMesh[] chunks;
 
@@ -18,24 +18,27 @@ namespace CombinedVoxelMesh {
 			chunks = new CombinedVoxelMesh[size.x * size.y];
 
 			CombinedVoxelMesh CVM = chunkPrefab.GetComponent<CombinedVoxelMesh>();
-			Vector3Int chunkSize = CVM.size;
+			Vector3Int chunkSize = CVM.settings.size;
 
 			csx = chunkSize.x;
 			csz = chunkSize.z;
-			
+
 			StartCoroutine(GenChunks());
 		}
 
 		/// <summary> Generate Chunk every frame </summary>
 		IEnumerator GenChunks() {
-			for (int i = 0; i < chunks.Length; i++) {// Instantiate Chunks and add to array
+			int i = 0;
+			for (; i < chunks.Length;) {// Instantiate Chunks and add to array
 				IndexToXZ(i, out int x, out int z);
 				chunkPrefab.name = $"Chunk {i + 1}";
 				GameObject o = Instantiate(chunkPrefab, new Vector3(x * csx, 0f, z * csz), Quaternion.identity, transform);
-				print($"{o.name} Generated");
-				chunks[i] = o.GetComponent<CombinedVoxelMesh>();
+				chunks[i++] = o.GetComponent<CombinedVoxelMesh>();
+
+				if (i % 256 == 0) print($"{i} Chunks Generated");
 				yield return null;
 			}
+			print($"{i} Chunks Generated");
 		}
 
 		/// <summary> Chunk coordinate to array index. </summary>

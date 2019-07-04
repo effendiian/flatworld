@@ -338,7 +338,9 @@ MonoBehaviour:
   chunk: {fileID: 1245256907}
   add: 49
   remove: 50
+  replace: 51
   allowHold: 1
+  destroyBedrock: 0
 --- !u!1 &968990781
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,23 +455,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1a92c23ec00804983b01d8587146eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 32, y: 32, z: 32}
+  settings: {fileID: 11400000, guid: 8bf7076fac45ac244ad3e213285ebac5, type: 2}
   voxels: []
-  layers:
-  - type: 4
-    height: 1
-  - type: 3
-    height: 8
-  - type: 2
-    height: 4
-  - type: 1
-    height: 1
-  - type: 0
-    height: 18
-  cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
-    type: 3}
-  hideColliders: 0
 --- !u!23 &1245256908
 MeshRenderer:
   m_ObjectHideFlags: 0

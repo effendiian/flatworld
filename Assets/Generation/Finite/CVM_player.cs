@@ -7,12 +7,16 @@ namespace CombinedVoxelMesh {
 	[RequireComponent(typeof(Camera))]
 	public class CVM_player : MonoBehaviour {
 		public CombinedVoxelMesh chunk;
-		public KeyCode add, remove;
-		public bool allowHold = false;
+		public KeyCode add = KeyCode.Alpha1, remove = KeyCode.Alpha2, replace = KeyCode.Alpha3;
+		public bool allowHold = false, destroyBedrock = false;
 
 		Camera cam;
+		BlockType setType;
 
-		void Start() => cam = GetComponent<Camera>();
+		void Start() {
+			cam = GetComponent<Camera>();
+			setType = BlockType.Stone;
+		}
 
 		void SetTargetVoxel(BlockType ty, bool adjacent = false) {
 			Ray ray;
@@ -24,8 +28,10 @@ namespace CombinedVoxelMesh {
 			if (Physics.Raycast(ray, out RaycastHit hit)) {
 				Vector3 p = hit.point + hit.normal * (adjacent ? 0.5f : -0.5f);
 
-				Vector3Int xyz = chunk.WorldToXYZ(p);
-				if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= chunk.size.x || xyz.y >= chunk.size.y || xyz.z >= chunk.size.z)
+				Vector3Int xyz = chunk.WorldToXYZ(p), size = chunk.settings.size;
+				if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= size.x || xyz.y >= size.y || xyz.z >= size.z)
+					return;
+				if (!destroyBedrock && chunk.voxels[chunk.XYZtoIndex(xyz)].ty == BlockType.Bedrock)
 					return;
 
 				chunk.voxels[chunk.XYZtoIndex(xyz)].ty = ty;
@@ -35,10 +41,12 @@ namespace CombinedVoxelMesh {
 
 		void Update() {
 			if (allowHold ? Input.anyKey : Input.anyKeyDown) {
-				if (Input.GetKey(add))
-					SetTargetVoxel(BlockType.Stone, adjacent: true);
-				else if (Input.GetKey(remove))
+				if (Input.GetKey(add))// Add block
+					SetTargetVoxel(setType, adjacent: true);
+				else if (Input.GetKey(remove))// Remove block
 					SetTargetVoxel(BlockType.Air);
+				else if (Input.GetKey(replace))
+					SetTargetVoxel(setType);
 			}
 		}
 	}
