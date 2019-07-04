@@ -3,7 +3,10 @@ guid: dc1a92c23ec00804983b01d8587146eb
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  - colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

@@ -1,12 +1,12 @@
 fileFormatVersion: 2
-guid: e310f40252df4ed4b80ab2c091e0bc71
+guid: 970acd497cd7b134da374a692f1036ad
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - chunkPrefab: {fileID: 2591361091606800554, guid: 2c58be513c32632429b2f1e9cc1462d9,
+  - cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  - colliderPrefab: {fileID: 4748090586374551553, guid: 3b56ead1e27940844988f39befe7592c,
       type: 3}
-  - cam: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

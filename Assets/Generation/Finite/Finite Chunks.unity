@@ -125,10 +125,10 @@ GameObject:
   - component: {fileID: 248616016}
   - component: {fileID: 248616020}
   - component: {fileID: 248616019}
+  - component: {fileID: 248616021}
   - component: {fileID: 248616023}
   - component: {fileID: 248616022}
-  - component: {fileID: 248616021}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -259,9 +259,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   world: {fileID: 1235171232}
+  world2: {fileID: 0}
   add: 49
   remove: 50
+  replace: 51
   allowHold: 1
+  destroyBedrock: 0
 --- !u!114 &248616022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,7 +280,7 @@ MonoBehaviour:
   volumeTrigger: {fileID: 248616018}
   volumeLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   stopNaNPropagation: 1
   finalBlitToCameraTarget: 0
   antialiasingMode: 0
@@ -451,7 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ef167db8c102cd42afb07391077785a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 8, y: 8}
+  size: {x: 16, y: 16}
   chunkPrefab: {fileID: 2591361091606800554, guid: 2c58be513c32632429b2f1e9cc1462d9,
     type: 3}
   chunks: []

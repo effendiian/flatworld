@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace CombinedVoxelMesh {
-	/// <summary> (Depreciated) add/remove blocks under cursor from chunk. </summary>
-	[RequireComponent(typeof(Camera))]
-	public class CVM_player : MonoBehaviour {
-		public CombinedVoxelMesh chunk;
+	/// <summary> Add/remove blocks under custom from voxel world. </summary>
+	public class CVMW_player : MonoBehaviour {
+		public CVM_chunkGen world;
+		public CVM_InfChunkGen world2;
 		public KeyCode add = KeyCode.Alpha1, remove = KeyCode.Alpha2, replace = KeyCode.Alpha3;
 		public bool allowHold = false, destroyBedrock = false;
 
@@ -18,6 +18,8 @@ namespace CombinedVoxelMesh {
 			setType = BlockType.Stone;
 		}
 
+		/// <summary> Set block under cursor </summary>
+		/// <param name="adjacent"> Use block adjacent to surface (adding a block) </param>
 		void SetTargetVoxel(BlockType ty, bool adjacent = false) {
 			Ray ray;
 			if (Cursor.visible)
@@ -27,6 +29,7 @@ namespace CombinedVoxelMesh {
 
 			if (Physics.Raycast(ray, out RaycastHit hit)) {
 				Vector3 p = hit.point + hit.normal * (adjacent ? 0.5f : -0.5f);
+				CombinedVoxelMesh chunk = (world2 == null) ? world.WorldToChunk(p) : world2.WorldToChunk(p);
 
 				Vector3Int xyz = chunk.WorldToXYZ(p), size = chunk.settings.size;
 				if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= size.x || xyz.y >= size.y || xyz.z >= size.z)
@@ -38,6 +41,7 @@ namespace CombinedVoxelMesh {
 				chunk.Regenerate();
 			}
 		}
+
 
 		void Update() {
 			if (allowHold ? Input.anyKey : Input.anyKeyDown) {
