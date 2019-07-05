@@ -365,7 +365,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 812596964}
+      - m_Target: {fileID: 1012625421}
         m_MethodName: QuitGame
         m_Mode: 1
         m_Arguments:
@@ -374,7 +374,7 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
@@ -424,7 +424,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 812596963}
-  - component: {fileID: 812596964}
   m_Layer: 5
   m_Name: PauseMenu
   m_TagString: Untagged
@@ -454,18 +453,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &812596964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 812596962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6bab7e8a70a7e94b8e4f2af896b8450, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &861068107
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,6 +594,7 @@ GameObject:
   - component: {fileID: 1012625419}
   - component: {fileID: 1012625418}
   - component: {fileID: 1012625417}
+  - component: {fileID: 1012625421}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -694,6 +682,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1012625421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1012625416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6bab7e8a70a7e94b8e4f2af896b8450, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bGPause: {fileID: 386449265}
 --- !u!1 &1526484897
 GameObject:
   m_ObjectHideFlags: 0
