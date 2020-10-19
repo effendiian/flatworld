@@ -62,7 +62,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.5
+    - _Glossiness: 0.25
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
@@ -76,7 +76,7 @@ Material:
     m_Colors:
     - _BedrockColor: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DirtColor: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
+    - _DirtColor: {r: 0.66, g: 0.31504172, b: 0.14058004, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _GrassColor: {r: 0.8396226, g: 0.8396226, b: 0.8396226, a: 1}
+    - _GrassColor: {r: 0.22920236, g: 0.735, b: 0.177135, a: 1}
     - _StoneColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
