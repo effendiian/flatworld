@@ -19,7 +19,7 @@
         CGPROGRAM
 		#include "Assets\Packages\RetroAA\RetroAA.cginc"
 
-        #pragma surface surf Standard fullforwardshadows vertex:vert
+        #pragma surface surf Standard fullforwardshadows vertex:vert nolightmap nometa noshadowmask
         #pragma target 3.0
 
         sampler2D _MainTex;
