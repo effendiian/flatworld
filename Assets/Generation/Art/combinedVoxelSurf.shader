@@ -1,7 +1,5 @@
-﻿Shader "Custom/combinedVoxelSurf"
-{
-    Properties
-    {
+﻿Shader "Custom/combinedVoxelSurf" {
+    Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _BlackGloss ("Black Smoothness", Range(0,1)) = 0.1
@@ -11,8 +9,7 @@
 		_StoneColor("Stone Color", Color) = (1,1,1,1)
 		_BedrockColor("Bedrock Color", Color) = (1,1,1,1)
     }
-    SubShader
-    {
+    SubShader {
         Tags { "RenderType"="Opaque" }
         LOD 200
 
@@ -30,7 +27,7 @@
 			float4 vertex    : POSITION;
 			float3 normal    : NORMAL;
 			//float4 texcoord  : TEXCOORD0;
-			float texcoord1 : TEXCOORD1;
+			fixed blockId : TEXCOORD1;
 		};
         struct Input
         {
@@ -43,21 +40,24 @@
 
 		void vert(inout VertIn v, out Input o) {
 			UNITY_INITIALIZE_OUTPUT(Input, o);
-			fixed block_id = round(v.texcoord1);
+			fixed block_id = round(v.blockId);
+
+			float3 absNorm = abs(v.normal);
+			float2 uv = 0.5;
+			bool isTop = absNorm.y > 0.5;
+			if (isTop) uv += v.vertex.xz;
+			else if (absNorm.x > 0.5) uv += v.vertex.yz;
+			else uv += v.vertex.xy;
+			o.block_uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
 
 			switch (block_id) {
-				case 1: o.block_col = _GrassColor; break;
+				case 1:
+					o.block_col = isTop ? _GrassColor : _DirtColor;
+					break;
 				case 2: o.block_col = _DirtColor; break;
 				case 3: o.block_col = _StoneColor; break;
 				case 4: o.block_col = _BedrockColor; break;
 			}
-
-			float3 absNorm = abs(v.normal);
-			float2 uv = 0.5;
-			if (absNorm.y > 0.5) uv += v.vertex.xz;
-			else if (absNorm.x > 0.5) uv += v.vertex.yz;
-			else uv += v.vertex.xy;
-			o.block_uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
 		}
 
         void surf(Input IN, inout SurfaceOutputStandard o)
